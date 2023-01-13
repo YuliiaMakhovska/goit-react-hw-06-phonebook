@@ -5,7 +5,6 @@ import { Report } from 'notiflix/build/notiflix-report-aio';
 import { FormStyled, FieldStyled, Label, Button } from './ContactForm.styled';
 import { Formik, ErrorMessage } from 'formik';
 import { nanoid } from 'nanoid';
-import { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { addContacts } from 'redux/contactsSlice';
 import { getItems } from 'redux/selectors';
@@ -22,8 +21,6 @@ const FormError = ({ name }) => {
 };
 
 const ContactForm = () => {
-  const [name, setName] = useState('');
-  const [number, setNumber] = useState('');
   const contacts = useSelector(getItems)
   const dispatch = useDispatch();
 
@@ -32,24 +29,20 @@ const ContactForm = () => {
 
   
   const handleSubmit = (values, { resetForm }) => {
-    dispatch(addContacts(values))
-    setName(values);
-    setNumber(values);
-    // onSubmit(values);
-    resetForm();
-
-      const existName = contacts.find(contact =>
-      contact.name.toLowerCase() === name.toLowerCase());
-      const contact = {
-      id: nanoid(),
-      name,
-      number,
-    };
-    if (existName) {
-      Report.failure(`${contact} is already in contacts`);
-      return;
+    let existName = false;
+    if (contacts && contacts.length > 0) {
+      contacts.forEach(({ name }) => {
+  if (values.name.toLowerCase() === name.toLowerCase()) {
+    Report.failure(`${existName} is already in contacts`);
+    existName = true;
+  }
+})
     }
-
+    if (!existName) {
+      values.id = nanoid()
+    dispatch(addContacts(values))
+    }
+          resetForm();
   };
   const initialValues = {
     name: '',
@@ -67,7 +60,6 @@ const ContactForm = () => {
           <FieldStyled
             type="text"
             name="name"
-            id={nameId}
             pattern="^[a-zA-Zа-яА-Я]+(([' -][a-zA-Zа-яА-Я ])?[a-zA-Zа-яА-Я]*)*$"
             title="Name may contain only letters, apostrophe, dash and spaces. For example Adrian, Jacob Mercer, Charles de Batz de Castelmore d'Artagnan"
             required
@@ -80,7 +72,6 @@ const ContactForm = () => {
           <FieldStyled
             type="tel"
             name="number"
-            id={numberId}
             pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
             title="Phone number must be digits and can contain spaces, dashes, parentheses and can start with +"
             required
