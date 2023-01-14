@@ -40,9 +40,10 @@ const ContactForm = () => {
     }
     if (!existName) {
       values.id = nanoid()
-    dispatch(addContacts(values))
+      dispatch(addContacts(values))
+      resetForm();
     }
-          resetForm();
+
   };
   const initialValues = {
     name: '',
